@@ -41,6 +41,18 @@ void CKTimeManager::SetMaximumDeltaTime(float DtMax) {
         m_MaximumDeltaTime = DtMax;
 }
 
+void CKTimeManager::SetFixedDeltaTime(float DtSet) {
+    m_FixedDeltaTime = DtSet > 0.0f ? DtSet : 0.0f;
+}
+
+void CKTimeManager::SetFixedProcessRate(float Rate) {
+    m_FixedProcessRate = Rate > 0.0f ? Rate : 0.0f;
+}
+
+void CKTimeManager::SetFixedPhysicsTimeScale(float Scale) {
+    m_FixedPhysicsTimeScale = Scale > 0.0f ? Scale : 1.0f;
+}
+
 void CKTimeManager::GetTimeToWaitForLimits(float &TimeBeforeRender, float &TimeBeforeBeh) {
     if (m_LimitOptions & (CK_FRAMERATE_SYNC | CK_FRAMERATE_FREE))
         TimeBeforeRender = 0.0f;
@@ -92,13 +104,15 @@ CKERROR CKTimeManager::PreProcess() {
     m_LastTime = m_CurrentTime;
     m_CurrentTime = m_StartupChrono.Current();
 
-    m_DeltaTime = m_CurrentTime - m_LastTime;
-    m_DeltaTimeFree = m_DeltaTime;
+    m_DeltaTimeFree = m_CurrentTime - m_LastTime;
+    m_DeltaTime = m_FixedDeltaTime > 0.0f ? m_FixedDeltaTime : m_DeltaTimeFree;
 
-    if (m_DeltaTime < m_MinimumDeltaTime)
-        m_DeltaTime = m_MinimumDeltaTime;
-    if (m_DeltaTime > m_MaximumDeltaTime)
-        m_DeltaTime = m_MaximumDeltaTime;
+    if (m_FixedDeltaTime <= 0.0f) {
+        if (m_DeltaTime < m_MinimumDeltaTime)
+            m_DeltaTime = m_MinimumDeltaTime;
+        if (m_DeltaTime > m_MaximumDeltaTime)
+            m_DeltaTime = m_MaximumDeltaTime;
+    }
 
     m_DeltaTime *= m_TimeScaleFactor;
     m_PlayTime += m_DeltaTime;
@@ -193,6 +207,9 @@ CKTimeManager::CKTimeManager(CKContext *Context) : CKBaseManager(Context, TIME_M
     m_LastTime = current;
     m_CurrentTime = current;
     m_TimeScaleFactor = 1.0f;
+    m_FixedDeltaTime = 0.0f;
+    m_FixedProcessRate = 0.0f;
+    m_FixedPhysicsTimeScale = 1.0f;
     m_Paused = TRUE;
     m_LimitOptions = CK_FRAMERATE_SYNC | CK_BEHRATE_SYNC;
     m_PlayTime = 0.0f;

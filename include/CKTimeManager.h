@@ -278,6 +278,42 @@ public:
     *********************************************************/
     void SetLastDeltaTime(float DtSet) { m_DeltaTime = DtSet; }
 
+    /*******************************************************
+    Summary: Selects a deterministic delta for every process tick.
+
+    Remarks:
+        A positive value makes behavioral time advance by exactly this many
+        milliseconds per CKContext::Process call. Zero restores wall-clock
+        deltas. Real elapsed time remains available through
+        GetLastDeltaTimeFree(). This runtime scheduling policy is deliberately
+        not serialized into compositions.
+    *********************************************************/
+    DLL_EXPORT void SetFixedDeltaTime(float DtSet);
+    float GetFixedDeltaTime() { return m_FixedDeltaTime; }
+
+    /*******************************************************
+    Summary: Records the deterministic CK process/input sampling rate.
+
+    Remarks:
+        This is deliberately separate from the fixed game-time delta: a game
+        may advance multiple simulation ticks from one input sample. It also
+        remains independent of the advisory behavioral-rate setting, which
+        compositions are allowed to overwrite.
+    *********************************************************/
+    DLL_EXPORT void SetFixedProcessRate(float Rate);
+    float GetFixedProcessRate() { return m_FixedProcessRate; }
+
+    /*******************************************************
+    Summary: Sets the physics-time multiplier for deterministic processing.
+
+    Remarks:
+        This does not alter behavior, animation or audio-facing delta time.
+        It represents games which submit multiple fixed physics ticks while
+        retaining one behavior/input sample.
+    *********************************************************/
+    DLL_EXPORT void SetFixedPhysicsTimeScale(float Scale);
+    float GetFixedPhysicsTimeScale() { return m_FixedPhysicsTimeScale; }
+
     //----------------------------------------------------
     //--  Runtime
 
@@ -381,6 +417,9 @@ protected:
     VxTimeProfiler m_StartupChrono;
 
     float m_DeltaTimeFree;
+    float m_FixedDeltaTime;
+    float m_FixedProcessRate;
+    float m_FixedPhysicsTimeScale;
 };
 
 #endif // CKTIMEMANAGER_H
